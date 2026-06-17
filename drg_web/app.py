@@ -2,9 +2,24 @@
 from __future__ import annotations
 
 import json
+import sys
 import traceback
 from pathlib import Path
 from typing import Any
+
+# 确保项目根目录在 sys.path 中，兼容 python drg_web/app.py 和 python -m drg_web 两种启动方式
+_project_root = Path(__file__).resolve().parent.parent
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
+# 自动加载项目根目录的 .env 文件
+try:
+    from dotenv import load_dotenv
+    _env_path = _project_root / ".env"
+    if _env_path.is_file():
+        load_dotenv(_env_path)
+except ImportError:
+    pass
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
