@@ -956,18 +956,10 @@ def revise_document(original: str, edits: list[dict]) -> str:
 # 复用 agent.py 的 LLM 环境解析逻辑
 def _resolve_llm_config() -> tuple[str | None, str | None, str]:
     """返回 (base_url, api_key, model)。"""
-    from drg_agent.agent import resolve_llm_env
+    from drg_agent.agent import resolve_llm_env, resolve_llm_model
 
     base, key = resolve_llm_env(None, None)
-    model = (
-        os.environ.get("OPENAI_MODEL")
-        or (
-            "qwen3-max"
-            if os.environ.get("DASHSCOPE_API_KEY") and not os.environ.get("OPENAI_API_KEY")
-            else "gpt-4o-mini"
-        )
-    )
-    return base, key, model
+    return base, key, resolve_llm_model()
 
 
 def _is_llm_available() -> bool:

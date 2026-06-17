@@ -18,8 +18,10 @@ except ImportError:
 from drg_agent.emr_parser import parse_emr_text
 from drg_agent.engine import GroupingEngine, GroupingInput, GroupingResult
 
-# 与阿里云百炼 OpenAI 兼容 SDK 一致：base_url 需包含 /v1，由客户端拼接 /chat/completions
+# 阿里云百炼 DashScope
 DASHSCOPE_COMPAT_BASE = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+# DeepSeek API（OpenAI 兼容）
+DEEPSEEK_BASE = "https://api.deepseek.com"
 
 
 def _is_dashscope_compatible_base(base: str) -> bool:
@@ -35,19 +37,26 @@ def resolve_llm_env(
     llm_base_url: str | None,
     llm_api_key: str | None,
 ) -> tuple[str | None, str | None]:
-    """从入参与环境变量解析 base 与 key；优先 OPENAI_API_KEY，其次 DASHSCOPE_API_KEY。"""
-    key = llm_api_key or os.environ.get("OPENAI_API_KEY") or os.environ.get(
-        "DASHSCOPE_API_KEY"
+    """解析 base_url 与 api_key。
+    优先级：入参 > OPENAI_API_KEY > DASHSCOPE_API_KEY > DEEPSEEK_API_KEY
+    自动推断：DashScope / DeepSeek 无需手动设 base_url。
+    """
+    key = (
+        llm_api_key
+        or os.environ.get("OPENAI_API_KEY")
+        or os.environ.get("DASHSCOPE_API_KEY")
+        or os.environ.get("DEEPSEEK_API_KEY")
     )
     base = llm_base_url or os.environ.get("OPENAI_BASE_URL")
-    if (
-        not base
-        and key
-        and os.environ.get("DASHSCOPE_API_KEY")
-        and not os.environ.get("OPENAI_API_KEY")
-        and not llm_api_key
-    ):
-        base = DASHSCOPE_COMPAT_BASE
+    if not base and key:
+        if os.environ.get("DASHSCOPE_API_KEY") and not os.environ.get(
+            "OPENAI_API_KEY"
+        ):
+            base = DASHSCOPE_COMPAT_BASE
+        elif os.environ.get("DEEPSEEK_API_KEY") and not os.environ.get(
+            "OPENAI_API_KEY"
+        ):
+            base = DEEPSEEK_BASE
     if base:
         base = base.strip()
         if _is_dashscope_compatible_base(base) and "/compatible-mode" in base.lower():
@@ -55,6 +64,17 @@ def resolve_llm_env(
             if not b.endswith("/v1"):
                 base = b + "/v1"
     return (base if base else None, key if key else None)
+
+
+def resolve_llm_model() -> str:
+    """解析模型名：OPENAI_MODEL > 自动推断（DashScope→qwen3-max, DeepSeek→deepseek-chat, 默认→gpt-4o-mini）。"""
+    if os.environ.get("OPENAI_MODEL"):
+        return os.environ["OPENAI_MODEL"]
+    if os.environ.get("DASHSCOPE_API_KEY") and not os.environ.get("OPENAI_API_KEY"):
+        return "qwen3-max"
+    if os.environ.get("DEEPSEEK_API_KEY") and not os.environ.get("OPENAI_API_KEY"):
+        return "deepseek-chat"
+    return "gpt-4o-mini"
 
 
 @dataclass
@@ -81,12 +101,7 @@ class DRGAgent:
             self._llm_base, self._llm_key = resolve_llm_env(llm_base_url, llm_api_key)
         else:
             self._llm_base, self._llm_key = None, None
-        self._llm_model = llm_model or os.environ.get("OPENAI_MODEL") or (
-            "qwen3-max"
-            if os.environ.get("DASHSCOPE_API_KEY")
-            and not os.environ.get("OPENAI_API_KEY")
-            else "gpt-4o-mini"
-        )
+        self._llm_model = llm_model or resolve_llm_model()
 
     def run(self, emr_text: str) -> AgentReport:
         parsed = parse_emr_text(emr_text)

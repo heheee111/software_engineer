@@ -1,7 +1,13 @@
 {
-  "version": "broad-heuristic-2.0-style",
-  "description": "教学用广覆盖启发式规则：按 ICD-10 章/段推断 MDC，手术码前缀+兜底；非国家医保局正式发布稿，不用于实际结算",
+  "version": "teaching-v2.0",
+  "description": "教学用 DRG 分组规则 — 对齐实验测试用例编码体系（GB2/EC2/HC1）；非国家医保局正式发布稿，不用于实际结算",
   "mdc_rules": [
+    {
+      "id": "mdc-digest-tumor",
+      "match_principal_icd": ["^C1[5-9]", "^C2[0-6]"],
+      "mdc_code": "MDCG",
+      "mdc_name": "消化系统疾病及功能障碍"
+    },
     {
       "id": "mdc-b-neuro",
       "match_principal_icd": ["^A01\\.002\\+G01", "^A01\\.002"],
@@ -183,15 +189,15 @@
       "supports_complication_layer": true
     },
     {
-      "id": "ce-lung-op",
+      "id": "adrg-ec2",
       "mdc_code": "MDCE",
       "match_principal_procedure": ["^32\\.", "^33\\.", "^34\\."],
-      "adrg_code": "EL1",
-      "adrg_name": "肺及胸腔相关手术（前缀）",
+      "adrg_code": "EC2",
+      "adrg_name": "纵隔、气管、胸壁其他手术",
       "supports_complication_layer": true
     },
     {
-      "id": "cf-heart-op",
+      "id": "adrg-fl1",
       "mdc_code": "MDCF",
       "match_principal_procedure": ["^35\\.", "^36\\.", "^37\\."],
       "adrg_code": "FL1",
@@ -199,23 +205,23 @@
       "supports_complication_layer": true
     },
     {
-      "id": "cg-gi-op",
+      "id": "adrg-gb2",
       "mdc_code": "MDCG",
-      "match_principal_procedure": ["^44\\.", "^45\\.", "^46\\.", "^47\\.", "^48\\.", "^49\\.", "^54\\."],
-      "adrg_code": "GL1",
-      "adrg_name": "消化系统相关手术（前缀）",
+      "match_principal_procedure": ["^43\\.", "^44\\.", "^45\\.", "^46\\.", "^47\\.", "^48\\.", "^49\\.", "^54\\."],
+      "adrg_code": "GB2",
+      "adrg_name": "胃、十二指肠大手术",
       "supports_complication_layer": true
     },
     {
-      "id": "ch-hep-op",
+      "id": "adrg-hc1",
       "mdc_code": "MDCH",
       "match_principal_procedure": ["^51\\.", "^52\\."],
-      "adrg_code": "HL1",
-      "adrg_name": "肝胆胰相关手术（前缀）",
+      "adrg_code": "HC1",
+      "adrg_name": "胆总管手术",
       "supports_complication_layer": true
     },
     {
-      "id": "ci-msk-op",
+      "id": "adrg-il1",
       "mdc_code": "MDCI",
       "match_principal_procedure": ["^77\\.", "^78\\.", "^79\\.", "^80\\.", "^81\\.", "^82\\.", "^83\\.", "^84\\.", "^85\\."],
       "adrg_code": "IL1",
@@ -223,7 +229,7 @@
       "supports_complication_layer": true
     },
     {
-      "id": "cl-uro-op",
+      "id": "adrg-ll1",
       "mdc_code": "MDCL",
       "match_principal_procedure": ["^55\\.", "^56\\.", "^57\\.", "^58\\.", "^59\\.", "^60\\.", "^61\\.", "^62\\."],
       "adrg_code": "LL1",
@@ -231,7 +237,7 @@
       "supports_complication_layer": true
     },
     {
-      "id": "cs-inj-surg",
+      "id": "adrg-sl1",
       "mdc_code": "MDCS",
       "match_principal_procedure": ["^[0-9]{2}\\."],
       "adrg_code": "SL1",
@@ -292,6 +298,8 @@
     { "icd_pattern": "^A41", "label": "A41 脓毒症", "category": "MCC" }
   ],
   "cc_list": [
+    { "icd_pattern": "^I63\\.", "label": "I63 腔隙性脑梗死", "category": "CC" },
+    { "icd_pattern": "^C22\\.", "label": "C22 肝内胆管癌", "category": "CC" },
     { "icd_pattern": "^M81\\.0", "label": "M81.0 绝经后骨质疏松等", "category": "CC" },
     { "icd_pattern": "^E11", "label": "E11 2型糖尿病", "category": "CC" },
     { "icd_pattern": "^I10", "label": "I10 高血压", "category": "CC" },
@@ -305,13 +313,28 @@
   "drg_fine_map": {
     "BB1": {
       "with_mcc": { "code": "BB11", "name": "神经系统复合手术，伴严重合并症或并发症" },
-      "with_cc_only": { "code": "BB13", "name": "神经系统复合手术，伴一般合并症或并发症" },
+      "with_cc_only": { "code": "BB19", "name": "神经系统复合手术，伴一般合并症或并发症" },
       "without_cc_mcc": { "code": "BB15", "name": "神经系统复合手术，不伴合并症或并发症" }
     },
     "IF1": {
       "with_mcc": { "code": "IF11", "name": "股骨骨折手术，伴严重合并症或并发症（教学）" },
-      "with_cc_only": { "code": "IF13", "name": "股骨骨折手术，伴一般合并症或并发症（教学）" },
+      "with_cc_only": { "code": "IF19", "name": "股骨骨折手术，伴一般合并症或并发症（教学）" },
       "without_cc_mcc": { "code": "IF15", "name": "股骨骨折手术，不伴合并症或并发症（教学）" }
+    },
+    "GB2": {
+      "with_mcc": { "code": "GB21", "name": "胃、十二指肠大手术，伴严重合并症或并发症" },
+      "with_cc_only": { "code": "GB29", "name": "胃、十二指肠大手术，伴一般合并症或并发症" },
+      "without_cc_mcc": { "code": "GB25", "name": "胃、十二指肠大手术，不伴合并症或并发症" }
+    },
+    "EC2": {
+      "with_mcc": { "code": "EC21", "name": "纵隔、气管、胸壁其他手术，伴严重合并症或并发症" },
+      "with_cc_only": { "code": "EC29", "name": "纵隔、气管、胸壁其他手术，伴一般合并症或并发症" },
+      "without_cc_mcc": { "code": "EC25", "name": "纵隔、气管、胸壁其他手术，不伴合并症或并发症" }
+    },
+    "HC1": {
+      "with_mcc": { "code": "HC11", "name": "胆总管手术，伴严重合并症或并发症" },
+      "with_cc_only": { "code": "HC19", "name": "胆总管手术，伴一般合并症或并发症" },
+      "without_cc_mcc": { "code": "HC15", "name": "胆总管手术，不伴合并症或并发症" }
     }
   }
 }

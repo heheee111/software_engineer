@@ -134,74 +134,74 @@ class TestCaseGenerator:
         """正常入组场景：预期规则命中并得到确定的 DRG 编码。"""
         cases: list[TestCase] = []
 
-        # N1: slide6 课件实例 — BB11 (有 MCC)
+        # N1: 胃窦恶性肿瘤+脑梗死 → GB29 (CC)
         cases.append(TestCase(
-            id="", title="课件实例 — 伤寒脑膜炎+呼吸衰竭 → BB11",
+            id="", title="胃窦恶性肿瘤+腔隙性脑梗死 → GB29",
             category="normal", priority="P0", module="engine",
-            description="主诊断 A01.002+G01*（伤寒性脑膜炎），次要 J96.0（呼吸衰竭），手术 38.1000x002 → BB11",
+            description="主诊断 C16.301（胃窦恶性肿瘤），次要 I63.801（腔隙性脑梗死，CC），手术 43.7x03 → MDCG/GB2/GB29",
+            input={
+                "principal_icd": "C16.301",
+                "secondary_icds": ["K66.002", "Z98.800x108", "I63.801", "K76.807"],
+                "principal_procedure_icd": "43.7x03",
+            },
+            expected={"mdc_code": "MDCG", "adrg_code": "GB2", "drg_code": "GB29", "has_cc": True},
+            tags=["消化系统", "肿瘤", "CC"],
+        ))
+
+        # N2: 支气管胆管瘘+肝内胆管癌 → EC29 (CC)
+        cases.append(TestCase(
+            id="", title="支气管胆管瘘+肝内胆管癌 → EC29",
+            category="normal", priority="P0", module="engine",
+            description="主诊断 J86.000x013（支气管胆管瘘），次要 C22.100（肝内胆管癌，CC），手术 34.8200x002 → MDCE/EC2/EC29",
+            input={
+                "principal_icd": "J86.000x013",
+                "secondary_icds": ["K66.002", "C22.100", "Z98.800x115"],
+                "principal_procedure_icd": "34.8200x002",
+            },
+            expected={"mdc_code": "MDCE", "adrg_code": "EC2", "drg_code": "EC29", "has_cc": True},
+            tags=["呼吸系统", "胸部手术", "CC"],
+        ))
+
+        # N3: 胆管狭窄无并发症 → HC15 (NONE)
+        cases.append(TestCase(
+            id="", title="胆管狭窄无并发症 → HC15",
+            category="normal", priority="P0", module="engine",
+            description="主诊断 K83.105（胆管狭窄），手术 51.6303，次要诊断均不命中 CC/MCC → MDCH/HC1/HC15",
+            input={
+                "principal_icd": "K83.105",
+                "secondary_icds": ["K83.109", "K83.807", "K66.007", "Z43.402"],
+                "principal_procedure_icd": "51.6303",
+            },
+            expected={"mdc_code": "MDCH", "adrg_code": "HC1", "drg_code": "HC15", "has_mcc": False, "has_cc": False},
+            tags=["肝胆", "无合并症"],
+        ))
+
+        # N4: 伤寒脑膜炎+呼吸衰竭 → BB11 (MCC)
+        cases.append(TestCase(
+            id="", title="伤寒脑膜炎+呼吸衰竭 → BB11",
+            category="normal", priority="P1", module="engine",
+            description="主诊断 A01.002+G01*（伤寒性脑膜炎），次要 J96.0（呼吸衰竭，MCC），手术 38.1000x002 → MDCB/BB1/BB11",
             input={
                 "principal_icd": "A01.002+G01*",
                 "secondary_icds": ["J96.0"],
                 "principal_procedure_icd": "38.1000x002",
             },
             expected={"mdc_code": "MDCB", "adrg_code": "BB1", "drg_code": "BB11", "has_mcc": True},
-            tags=["slide6", "MCC", "神经系统"],
+            tags=["神经系统", "MCC"],
         ))
 
-        # N2: 无次要诊断 → BB15
+        # N5: 伤寒脑膜炎无合并症 → BB15 (NONE)
         cases.append(TestCase(
-            id="", title="课件实例 — 无合并症 → BB15",
-            category="normal", priority="P0", module="engine",
-            description="主诊断 A01.002+G01*，手术 38.1000x002，无次要诊断 → BB15",
+            id="", title="伤寒脑膜炎无合并症 → BB15",
+            category="normal", priority="P1", module="engine",
+            description="主诊断 A01.002+G01*，手术 38.1000x002，无次要诊断 → MDCB/BB1/BB15",
             input={
                 "principal_icd": "A01.002+G01*",
                 "secondary_icds": [],
                 "principal_procedure_icd": "38.1000x002",
             },
             expected={"mdc_code": "MDCB", "adrg_code": "BB1", "drg_code": "BB15", "has_mcc": False},
-            tags=["slide6", "无MCC", "神经系统"],
-        ))
-
-        # N3: case5 股骨颈骨折 + 骨质疏松 → IF13 (CC)
-        cases.append(TestCase(
-            id="", title="股骨颈骨折+骨质疏松 → IF13",
-            category="normal", priority="P0", module="engine",
-            description="主诊断 S72.000（股骨颈骨折），次要 M81.000（骨质疏松），手术 79.3500x001 → IF13",
-            input={
-                "principal_icd": "S72.000",
-                "secondary_icds": ["M81.000"],
-                "principal_procedure_icd": "79.3500x001",
-            },
-            expected={"mdc_code": "MDCI", "adrg_code": "IF1", "drg_code": "IF13", "has_cc": True},
-            tags=["case5", "CC", "骨科"],
-        ))
-
-        # N4: 肺炎无手术 — 内科路径 EM05
-        cases.append(TestCase(
-            id="", title="肺炎无手术 — 内科路径 EM05",
-            category="normal", priority="P1", module="engine",
-            description="主诊断 J18.901（肺炎），无手术 → MDCE/EM0/EM05",
-            input={
-                "principal_icd": "J18.901",
-                "secondary_icds": [],
-                "principal_procedure_icd": None,
-            },
-            expected={"mdc_code": "MDCE", "adrg_code": "EM0", "drg_code": "EM05"},
-            tags=["内科", "呼吸"],
-        ))
-
-        # N5: 手术不命中专科表但命中 catch-all → BS91
-        cases.append(TestCase(
-            id="", title="手术不命中专科 → catch-all BS91",
-            category="normal", priority="P1", module="engine",
-            description="主诊断 A01.002+G01*，次要 J96.0，手术 38.9999（不在专科表）→ BS9/BS91",
-            input={
-                "principal_icd": "A01.002+G01*",
-                "secondary_icds": ["J96.0"],
-                "principal_procedure_icd": "38.9999",
-            },
-            expected={"mdc_code": "MDCB", "adrg_code": "BS9", "drg_code": "BS91", "has_mcc": True},
-            tags=["catch-all", "MCC"],
+            tags=["神经系统", "无合并症"],
         ))
 
         return cases
@@ -210,21 +210,21 @@ class TestCaseGenerator:
         """边界场景：恰好在规则边缘的情况。"""
         cases: list[TestCase] = []
 
-        # B1: 次要诊断存在但不在 MCC 列表（如仅高血压 I10）
+        # B1: 次要诊断仅命中 CC（高血压 I10）
         cases.append(TestCase(
-            id="", title="仅 CC 无 MCC — 高血压 → BB13",
+            id="", title="仅 CC 无 MCC — 高血压 → BB19",
             category="boundary", priority="P1", module="engine",
-            description="次要诊断仅有 I10（高血压，属于 CC 非 MCC），预期命中 BB13（伴一般合并症）",
+            description="次要诊断仅有 I10（高血压，属于 CC 非 MCC），预期命中 BB19（伴一般合并症）",
             input={
                 "principal_icd": "A01.002+G01*",
                 "secondary_icds": ["I10"],
                 "principal_procedure_icd": "38.1000x002",
             },
-            expected={"mdc_code": "MDCB", "adrg_code": "BB1", "drg_code": "BB13", "has_cc": True, "has_mcc": False},
+            expected={"mdc_code": "MDCB", "adrg_code": "BB1", "drg_code": "BB19", "has_cc": True, "has_mcc": False},
             tags=["边界", "CC-only"],
         ))
 
-        # B2: 既有 MCC 又有 CC
+        # B2: 既有 MCC 又有 CC — MCC 优先
         cases.append(TestCase(
             id="", title="MCC+CC 同时存在 — 优先 MCC → BB11",
             category="boundary", priority="P1", module="engine",
@@ -238,11 +238,11 @@ class TestCaseGenerator:
             tags=["边界", "MCC+CC"],
         ))
 
-        # B3: 手术为空但内科路径需要手术
+        # B3: 无手术走内科 fallback
         cases.append(TestCase(
-            id="", title="有手术但内科 fallback 不要求手术",
+            id="", title="无手术 — 走内科 fallback BM05",
             category="boundary", priority="P2", module="engine",
-            description="主诊断 A01.002+G01* 在 MDCB，不提供手术，走内科 fallback BM0",
+            description="主诊断 A01.002+G01* 在 MDCB，不提供手术，走内科 fallback BM0 → BM05",
             input={
                 "principal_icd": "A01.002+G01*",
                 "secondary_icds": [],
@@ -252,12 +252,11 @@ class TestCaseGenerator:
             tags=["内科fallback"],
         ))
 
-        # B4: 次要诊断匹配 MCC 但被排除表过滤
-        # (当前排除表为空，此用例验证排除逻辑路径)
+        # B4: 多个 MCC 同时命中
         cases.append(TestCase(
-            id="", title="MCC 候选但通过排除表检查（空排除表）",
+            id="", title="双 MCC 命中 — 呼吸衰竭+心力衰竭 → BB11",
             category="boundary", priority="P2", module="engine",
-            description="验证 mcc_exclusions_by_principal 为空时所有 MCC 都能命中",
+            description="次要诊断同时有 J96.0（呼吸衰竭）和 I50（心力衰竭），双 MCC → BB11",
             input={
                 "principal_icd": "A01.002+G01*",
                 "secondary_icds": ["J96.0", "I50"],
@@ -273,11 +272,11 @@ class TestCaseGenerator:
         """异常场景：预期系统能妥善处理异常输入。"""
         cases: list[TestCase] = []
 
-        # E1: 主要诊断格式错误 — 无有效 ICD-10 编码，走兜底规则
+        # E1: 主要诊断编码无法解析
         cases.append(TestCase(
-            id="", title="无法解析的主要诊断编码 — 走兜底",
+            id="", title="无法解析的诊断编码 — 走兜底",
             category="exception", priority="P1", module="parser",
-            description="主要诊断 'XXXXX' 不是标准 ICD-10 编码，命中通配规则 mdc-fallback-any → MDCS / SM0",
+            description="主要诊断 'XXXXX' 不是标准 ICD-10 编码，命中通配规则 → MDCS",
             input={
                 "principal_icd": "XXXXX",
                 "secondary_icds": [],
@@ -287,11 +286,11 @@ class TestCaseGenerator:
             tags=["异常", "解析失败", "兜底"],
         ))
 
-        # E2: 不匹配任何 MDC 规则的 ICD
+        # E2: U 类编码走兜底
         cases.append(TestCase(
-            id="", title="ICD 不匹配任何 MDC → UNKNOWN",
+            id="", title="U 类编码 — 走兜底 MDCR",
             category="exception", priority="P1", module="engine",
-            description="编码 U99.0 不匹配任何 mdc_rules（U 类归 MDCR 兜底）→ 实际上会走 fallback",
+            description="编码 U99.0 命中 mdc-fallback-u 规则 → MDCR",
             input={
                 "principal_icd": "U99.0",
                 "secondary_icds": [],
@@ -301,7 +300,7 @@ class TestCaseGenerator:
             tags=["兜底", "fallback"],
         ))
 
-        # E3: 手术编码格式异常 — 不匹配专科手术，走 catch-all 手术桶
+        # E3: 手术编码格式异常 — 走 catch-all
         cases.append(TestCase(
             id="", title="畸形手术编码 — 走 catch-all 手术桶",
             category="exception", priority="P2", module="engine",
@@ -315,7 +314,7 @@ class TestCaseGenerator:
             tags=["畸形编码", "catch-all"],
         ))
 
-        # E4: 空输入（次要诊断列表为空 + 无手术）
+        # E4: 极简输入 — 仅主诊断
         cases.append(TestCase(
             id="", title="极简输入 — 仅主诊断无手术无次要",
             category="exception", priority="P2", module="engine",
@@ -329,11 +328,11 @@ class TestCaseGenerator:
             tags=["极简输入"],
         ))
 
-        # E5: 有手术但手术码不在该 MDC 的 ADRG 规则中 → catch-all
+        # E5: 手术码跨 MDC 不匹配 → catch-all
         cases.append(TestCase(
             id="", title="跨 MDC 手术 → catch-all",
             category="exception", priority="P2", module="engine",
-            description="MDCI 下手术不是骨科手术 → 走 catch-all IS9",
+            description="MDCI 下提供神经外科手术 38.1000x002 → 走 catch-all IS9",
             input={
                 "principal_icd": "S72.000",
                 "secondary_icds": [],
@@ -517,19 +516,10 @@ class TestCaseExporter:
 
 def _resolve_test_llm_config() -> tuple[str | None, str | None, str]:
     """返回 (base_url, api_key, model)。"""
-    import os
-    from drg_agent.agent import resolve_llm_env
+    from drg_agent.agent import resolve_llm_env, resolve_llm_model
 
     base, key = resolve_llm_env(None, None)
-    model = (
-        os.environ.get("OPENAI_MODEL")
-        or (
-            "qwen3-max"
-            if os.environ.get("DASHSCOPE_API_KEY") and not os.environ.get("OPENAI_API_KEY")
-            else "gpt-4o-mini"
-        )
-    )
-    return base, key, model
+    return base, key, resolve_llm_model()
 
 
 def _test_llm_available() -> bool:
