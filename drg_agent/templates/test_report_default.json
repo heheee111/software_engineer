@@ -1,0 +1,7 @@
+{
+  "name": "test_report_default",
+  "doc_type": "test_report",
+  "content": "# 测试报告\n\n| 项目 | 内容 |\n|------|------|\n| 报告版本 | {doc_version} |\n| 生成时间 | {timestamp} |\n| 项目名称 | {project_name} |\n| 测试执行人 | {tester} |\n\n---\n\n## 1. 测试概述\n\n### 1.1 测试目标\n{test_objective}\n\n### 1.2 测试范围\n{test_scope}\n\n### 1.3 测试环境\n{test_environment}\n\n---\n\n## 2. 测试执行摘要\n\n| 指标 | 数值 |\n|------|------|\n| 用例总数 | {total_cases} |\n| 通过 | {passed} |\n| 失败 | {failed} |\n| 跳过 | {skipped} |\n| 通过率 | {pass_rate} |\n\n---\n\n## 3. 测试结果详情\n\n{test_details}\n\n---\n\n## 4. 缺陷汇总\n\n{defects}\n\n---\n\n## 5. 结论与建议\n\n{conclusion}\n",
+  "description": "测试报告默认模板",
+  "version": "1.0"
+}

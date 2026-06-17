@@ -1,0 +1,317 @@
+{
+  "version": "broad-heuristic-2.0-style",
+  "description": "教学用广覆盖启发式规则：按 ICD-10 章/段推断 MDC，手术码前缀+兜底；非国家医保局正式发布稿，不用于实际结算",
+  "mdc_rules": [
+    {
+      "id": "mdc-b-neuro",
+      "match_principal_icd": ["^A01\\.002\\+G01", "^A01\\.002"],
+      "mdc_code": "MDCB",
+      "mdc_name": "神经系统疾病及功能障碍"
+    },
+    {
+      "id": "mdc-i-msk-hip",
+      "match_principal_icd": ["^S72\\.0"],
+      "mdc_code": "MDCI",
+      "mdc_name": "骨骼、肌肉、结缔组织疾病及功能障碍"
+    },
+    {
+      "id": "mdc-i-msk-fracture-more",
+      "match_principal_icd": ["^S52\\.", "^S82\\.", "^S42\\.", "^T84\\."],
+      "mdc_code": "MDCI",
+      "mdc_name": "骨骼、肌肉、结缔组织疾病及功能障碍"
+    },
+    {
+      "id": "mdc-a-infect",
+      "match_principal_icd": ["^[AB]"],
+      "mdc_code": "MDCA",
+      "mdc_name": "某些传染病和寄生虫病"
+    },
+    {
+      "id": "mdc-onc",
+      "match_principal_icd": ["^C", "^D[0-4]"],
+      "mdc_code": "MDCT",
+      "mdc_name": "恶性肿瘤及肿瘤相关疾病（综合）"
+    },
+    {
+      "id": "mdc-blood",
+      "match_principal_icd": ["^D[5-9]"],
+      "mdc_code": "MDCW",
+      "mdc_name": "血液、造血及免疫系统疾病"
+    },
+    {
+      "id": "mdc-endocrine",
+      "match_principal_icd": ["^E"],
+      "mdc_code": "MDCK",
+      "mdc_name": "内分泌、营养、代谢疾病"
+    },
+    {
+      "id": "mdc-mental",
+      "match_principal_icd": ["^F"],
+      "mdc_code": "MDCP",
+      "mdc_name": "精神和行为障碍"
+    },
+    {
+      "id": "mdc-neuro-g",
+      "match_principal_icd": ["^G"],
+      "mdc_code": "MDCB",
+      "mdc_name": "神经系统疾病及功能障碍"
+    },
+    {
+      "id": "mdc-eye",
+      "match_principal_icd": ["^H[0-5]"],
+      "mdc_code": "MDCC",
+      "mdc_name": "眼部疾病及功能障碍"
+    },
+    {
+      "id": "mdc-ent",
+      "match_principal_icd": ["^H[6-9]"],
+      "mdc_code": "MDCD",
+      "mdc_name": "头颈、耳、鼻、口、咽疾病"
+    },
+    {
+      "id": "mdc-circ",
+      "match_principal_icd": ["^I"],
+      "mdc_code": "MDCF",
+      "mdc_name": "循环系统疾病"
+    },
+    {
+      "id": "mdc-resp",
+      "match_principal_icd": ["^J"],
+      "mdc_code": "MDCE",
+      "mdc_name": "呼吸系统疾病"
+    },
+    {
+      "id": "mdc-hep-bili",
+      "match_principal_icd": ["^K7", "^K8[0-7]", "^K86\\.", "^K87\\."],
+      "mdc_code": "MDCH",
+      "mdc_name": "肝胆胰疾病"
+    },
+    {
+      "id": "mdc-digest",
+      "match_principal_icd": ["^K"],
+      "mdc_code": "MDCG",
+      "mdc_name": "消化系统疾病"
+    },
+    {
+      "id": "mdc-skin",
+      "match_principal_icd": ["^L"],
+      "mdc_code": "MDCJ",
+      "mdc_name": "皮肤、皮下组织疾病"
+    },
+    {
+      "id": "mdc-msk-m",
+      "match_principal_icd": ["^M"],
+      "mdc_code": "MDCI",
+      "mdc_name": "骨骼、肌肉、结缔组织疾病及功能障碍"
+    },
+    {
+      "id": "mdc-gu",
+      "match_principal_icd": ["^N"],
+      "mdc_code": "MDCL",
+      "mdc_name": "泌尿系统及生殖系统疾病"
+    },
+    {
+      "id": "mdc-ob",
+      "match_principal_icd": ["^O"],
+      "mdc_code": "MDCM",
+      "mdc_name": "妊娠、分娩及产褥期"
+    },
+    {
+      "id": "mdc-perinatal",
+      "match_principal_icd": ["^P"],
+      "mdc_code": "MDCN",
+      "mdc_name": "新生儿及其他围产期新生儿疾病"
+    },
+    {
+      "id": "mdc-congenital",
+      "match_principal_icd": ["^Q"],
+      "mdc_code": "MDCQ",
+      "mdc_name": "先天畸形、变形和染色体异常"
+    },
+    {
+      "id": "mdc-injury",
+      "match_principal_icd": ["^S|^T"],
+      "mdc_code": "MDCS",
+      "mdc_name": "损伤、中毒及外因后果"
+    },
+    {
+      "id": "mdc-r-sym",
+      "match_principal_icd": ["^R"],
+      "mdc_code": "MDCR",
+      "mdc_name": "症状、体征和临床与实验室异常"
+    },
+    {
+      "id": "mdc-z-health",
+      "match_principal_icd": ["^Z"],
+      "mdc_code": "MDCZ",
+      "mdc_name": "影响健康状态和接触医疗服务的因素"
+    },
+    {
+      "id": "mdc-ext-vwxy",
+      "match_principal_icd": ["^[VWXY]"],
+      "mdc_code": "MDCS",
+      "mdc_name": "损伤、中毒及外因后果"
+    },
+    {
+      "id": "mdc-fallback-u",
+      "match_principal_icd": ["^U"],
+      "mdc_code": "MDCR",
+      "mdc_name": "症状、体征和临床与实验室异常（综合）"
+    },
+    {
+      "id": "mdc-fallback-any",
+      "match_principal_icd": ["^."],
+      "mdc_code": "MDCR",
+      "mdc_name": "未特指类目归集（综合）"
+    }
+  ],
+  "adrg_rules": [
+    {
+      "id": "adrg-bb1",
+      "mdc_code": "MDCB",
+      "match_principal_procedure": ["^38\\.1000x002$", "^38\\.1000"],
+      "adrg_code": "BB1",
+      "adrg_name": "神经系统复合手术组",
+      "supports_complication_layer": true
+    },
+    {
+      "id": "adrg-if1",
+      "mdc_code": "MDCI",
+      "match_principal_procedure": ["^79\\.3500x001$", "^79\\.3500"],
+      "adrg_code": "IF1",
+      "adrg_name": "股骨上端骨折内固定术组（教学）",
+      "supports_complication_layer": true
+    },
+    {
+      "id": "ce-lung-op",
+      "mdc_code": "MDCE",
+      "match_principal_procedure": ["^32\\.", "^33\\.", "^34\\."],
+      "adrg_code": "EL1",
+      "adrg_name": "肺及胸腔相关手术（前缀）",
+      "supports_complication_layer": true
+    },
+    {
+      "id": "cf-heart-op",
+      "mdc_code": "MDCF",
+      "match_principal_procedure": ["^35\\.", "^36\\.", "^37\\."],
+      "adrg_code": "FL1",
+      "adrg_name": "心脏及大血管相关手术（前缀）",
+      "supports_complication_layer": true
+    },
+    {
+      "id": "cg-gi-op",
+      "mdc_code": "MDCG",
+      "match_principal_procedure": ["^44\\.", "^45\\.", "^46\\.", "^47\\.", "^48\\.", "^49\\.", "^54\\."],
+      "adrg_code": "GL1",
+      "adrg_name": "消化系统相关手术（前缀）",
+      "supports_complication_layer": true
+    },
+    {
+      "id": "ch-hep-op",
+      "mdc_code": "MDCH",
+      "match_principal_procedure": ["^51\\.", "^52\\."],
+      "adrg_code": "HL1",
+      "adrg_name": "肝胆胰相关手术（前缀）",
+      "supports_complication_layer": true
+    },
+    {
+      "id": "ci-msk-op",
+      "mdc_code": "MDCI",
+      "match_principal_procedure": ["^77\\.", "^78\\.", "^79\\.", "^80\\.", "^81\\.", "^82\\.", "^83\\.", "^84\\.", "^85\\."],
+      "adrg_code": "IL1",
+      "adrg_name": "骨关节肌肉相关手术（前缀）",
+      "supports_complication_layer": true
+    },
+    {
+      "id": "cl-uro-op",
+      "mdc_code": "MDCL",
+      "match_principal_procedure": ["^55\\.", "^56\\.", "^57\\.", "^58\\.", "^59\\.", "^60\\.", "^61\\.", "^62\\."],
+      "adrg_code": "LL1",
+      "adrg_name": "泌尿生殖系统相关手术（前缀）",
+      "supports_complication_layer": true
+    },
+    {
+      "id": "cs-inj-surg",
+      "mdc_code": "MDCS",
+      "match_principal_procedure": ["^[0-9]{2}\\."],
+      "adrg_code": "SL1",
+      "adrg_name": "损伤中毒相关手术（综合前缀）",
+      "supports_complication_layer": true
+    },
+    { "id": "catch-a", "mdc_code": "MDCA", "surgical_catch_all": true, "adrg_code": "AS9", "adrg_name": "传染病科相关其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-t", "mdc_code": "MDCT", "surgical_catch_all": true, "adrg_code": "TS9", "adrg_name": "肿瘤相关其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-w", "mdc_code": "MDCW", "surgical_catch_all": true, "adrg_code": "WS9", "adrg_name": "血液病相关其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-k-meta", "mdc_code": "MDCK", "surgical_catch_all": true, "adrg_code": "KS9", "adrg_name": "内分泌代谢相关其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-p", "mdc_code": "MDCP", "surgical_catch_all": true, "adrg_code": "PS9", "adrg_name": "精神专科相关其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-b", "mdc_code": "MDCB", "surgical_catch_all": true, "adrg_code": "BS9", "adrg_name": "神经系统其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-c-eye", "mdc_code": "MDCC", "surgical_catch_all": true, "adrg_code": "CS9", "adrg_name": "眼科其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-d", "mdc_code": "MDCD", "surgical_catch_all": true, "adrg_code": "DS9", "adrg_name": "头颈耳鼻喉其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-f", "mdc_code": "MDCF", "surgical_catch_all": true, "adrg_code": "FS9", "adrg_name": "循环系统其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-e", "mdc_code": "MDCE", "surgical_catch_all": true, "adrg_code": "ES9", "adrg_name": "呼吸系统其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-g", "mdc_code": "MDCG", "surgical_catch_all": true, "adrg_code": "GS9", "adrg_name": "消化系统其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-h", "mdc_code": "MDCH", "surgical_catch_all": true, "adrg_code": "HS9", "adrg_name": "肝胆胰其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-j", "mdc_code": "MDCJ", "surgical_catch_all": true, "adrg_code": "JS9", "adrg_name": "皮肤及软组织其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-i", "mdc_code": "MDCI", "surgical_catch_all": true, "adrg_code": "IS9", "adrg_name": "骨关节肌肉其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-l", "mdc_code": "MDCL", "surgical_catch_all": true, "adrg_code": "LS9", "adrg_name": "泌尿生殖其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-m", "mdc_code": "MDCM", "surgical_catch_all": true, "adrg_code": "MS9", "adrg_name": "产科相关其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-n", "mdc_code": "MDCN", "surgical_catch_all": true, "adrg_code": "NS9", "adrg_name": "新生儿相关其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-q", "mdc_code": "MDCQ", "surgical_catch_all": true, "adrg_code": "QS9", "adrg_name": "先天畸形相关其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-r", "mdc_code": "MDCR", "surgical_catch_all": true, "adrg_code": "RS9", "adrg_name": "诊断性及其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-s", "mdc_code": "MDCS", "surgical_catch_all": true, "adrg_code": "SS9", "adrg_name": "损伤中毒其他手术（综合）", "supports_complication_layer": true },
+    { "id": "catch-z", "mdc_code": "MDCZ", "surgical_catch_all": true, "adrg_code": "ZS9", "adrg_name": "健康因素影响相关手术（综合）", "supports_complication_layer": true }
+  ],
+  "adrg_medical_rules": [],
+  "adrg_medical_fallback": [
+    { "mdc_code": "MDCA", "adrg_code": "AM0", "adrg_name": "传染病内科治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCT", "adrg_code": "TM0", "adrg_name": "肿瘤内科及保守治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCW", "adrg_code": "WM0", "adrg_name": "血液及免疫内科治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCK", "adrg_code": "KM0", "adrg_name": "内分泌代谢内科治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCP", "adrg_code": "PM0", "adrg_name": "精神障碍药物及保守治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCB", "adrg_code": "BM0", "adrg_name": "神经系统内科治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCC", "adrg_code": "CM0", "adrg_name": "眼科保守治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCD", "adrg_code": "DM0", "adrg_name": "头颈耳鼻喉内科治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCF", "adrg_code": "FM0", "adrg_name": "循环系统内科治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCE", "adrg_code": "EM0", "adrg_name": "呼吸系统内科治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCG", "adrg_code": "GM0", "adrg_name": "消化系统内科治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCH", "adrg_code": "HM0", "adrg_name": "肝胆胰内科治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCJ", "adrg_code": "JM0", "adrg_name": "皮肤内科及保守治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCI", "adrg_code": "IM0", "adrg_name": "骨关节肌肉保守治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCL", "adrg_code": "LM0", "adrg_name": "泌尿生殖保守及药物治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCM", "adrg_code": "MM0", "adrg_name": "产科非手术路径（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCN", "adrg_code": "NM0", "adrg_name": "新生儿内科保守治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCQ", "adrg_code": "QM0", "adrg_name": "先天畸形保守治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCR", "adrg_code": "RM0", "adrg_name": "症状体征检查及保守治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCS", "adrg_code": "SM0", "adrg_name": "损伤中毒保守治疗（综合）", "supports_complication_layer": true },
+    { "mdc_code": "MDCZ", "adrg_code": "ZM0", "adrg_name": "健康因素相关处置（综合）", "supports_complication_layer": true }
+  ],
+  "mcc_list": [
+    { "icd_pattern": "^J96\\.", "label": "J96 呼吸衰竭", "category": "MCC" },
+    { "icd_pattern": "^I50", "label": "I50 心力衰竭", "category": "MCC" },
+    { "icd_pattern": "^N18", "label": "N18 慢性肾脏病", "category": "MCC" },
+    { "icd_pattern": "^R57", "label": "R57 休克", "category": "MCC" },
+    { "icd_pattern": "^A41", "label": "A41 脓毒症", "category": "MCC" }
+  ],
+  "cc_list": [
+    { "icd_pattern": "^M81\\.0", "label": "M81.0 绝经后骨质疏松等", "category": "CC" },
+    { "icd_pattern": "^E11", "label": "E11 2型糖尿病", "category": "CC" },
+    { "icd_pattern": "^I10", "label": "I10 高血压", "category": "CC" },
+    { "icd_pattern": "^J44", "label": "J44 慢阻肺", "category": "CC" },
+    { "icd_pattern": "^D64", "label": "D64 贫血", "category": "CC" }
+  ],
+  "mcc_exclusions_by_principal": [
+    { "principal_patterns": ["^A01\\.002\\+G01", "^A01\\.002"], "excluded_secondary_patterns": [] },
+    { "principal_patterns": ["^S72\\.0"], "excluded_secondary_patterns": [] }
+  ],
+  "drg_fine_map": {
+    "BB1": {
+      "with_mcc": { "code": "BB11", "name": "神经系统复合手术，伴严重合并症或并发症" },
+      "with_cc_only": { "code": "BB13", "name": "神经系统复合手术，伴一般合并症或并发症" },
+      "without_cc_mcc": { "code": "BB15", "name": "神经系统复合手术，不伴合并症或并发症" }
+    },
+    "IF1": {
+      "with_mcc": { "code": "IF11", "name": "股骨骨折手术，伴严重合并症或并发症（教学）" },
+      "with_cc_only": { "code": "IF13", "name": "股骨骨折手术，伴一般合并症或并发症（教学）" },
+      "without_cc_mcc": { "code": "IF15", "name": "股骨骨折手术，不伴合并症或并发症（教学）" }
+    }
+  }
+}

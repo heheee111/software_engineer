@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>医保 DRG 入组智能体（教学演示）</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+
+    <!-- ── Header ──────────────────────────────────────────────── -->
+    <header class="page-header">
+      <div class="header-inner">
+        <h1>
+          <span class="icon">🏥</span>
+          医保 DRG 入组智能体
+        </h1>
+        <p>基于教学级规则样本，解析电子病历文本，自动完成 MDC → ADRG → DRG 完整入组推理链</p>
+        <div class="header-tags">
+          <span class="header-tag">📋 规则引擎</span>
+          <span class="header-tag">🔬 ICD-10 解析</span>
+          <span class="header-tag">🤖 LLM 增强</span>
+          <span class="header-tag">📄 文档自动生成</span>
+          <span class="header-tag">🧪 测试用例</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+
+      <!-- ── Tab Navigation ────────────────────────────────────── -->
+      <nav class="tab-nav" id="tab-nav">
+        <button class="tab active" data-tab="tab-group">📊 DRG 入组</button>
+        <button class="tab" data-tab="tab-docs">📄 文档生成</button>
+        <button class="tab" data-tab="tab-tests">🧪 测试用例</button>
+      </nav>
+
+      <!-- ════════════════════════════════════════════════════════ -->
+      <!-- Tab 1: DRG 入组                                          -->
+      <!-- ════════════════════════════════════════════════════════ -->
+      <div class="tab-content active" id="tab-group">
+        <div class="grid">
+          <section class="panel">
+            <div class="panel-title"><span class="dot"></span> 电子病历输入</div>
+            <label class="form-label" for="emr">病历文本（需含「主要诊断」「次要诊断」「主要手术」等行）</label>
+            <textarea id="emr" class="form-textarea" placeholder="在此粘贴病历文本，或点击下方按钮加载课件示例…"></textarea>
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-run">
+                <span class="spinner" aria-hidden="true"></span>
+                <span class="btn-label">开始入组分析</span>
+              </button>
+              <button type="button" class="btn btn-outline" id="btn-example">加载课件示例</button>
+              <label class="checkbox-label" title="需配置 DASHSCOPE_API_KEY 或 OPENAI_API_KEY">
+                <input type="checkbox" id="chk-llm" checked />
+                大模型润色说明
+              </label>
+            </div>
+            <p class="hint">
+              通义百炼：默认 <code>qwen3-max</code> 模型，配置 <code>DASHSCOPE_API_KEY</code> 后自动生效。
+            </p>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title"><span class="dot"></span> 入组结果</div>
+            <div id="error" class="alert alert-error" style="display: none" role="alert"></div>
+            <div id="summary" style="display: none">
+              <div class="summary-cards">
+                <div class="card"><div class="card-label">MDC 大类</div><div class="card-code" id="v-mdc-c"></div><div class="card-name" id="v-mdc-n"></div></div>
+                <div class="card"><div class="card-label">ADRG 核心组</div><div class="card-code" id="v-adrg-c"></div><div class="card-name" id="v-adrg-n"></div></div>
+                <div class="card card-accent"><div class="card-label">DRG 细分组</div><div class="card-code" id="v-drg-c"></div><div class="card-name" id="v-drg-n"></div></div>
+              </div>
+              <div class="panel-title" style="margin-top:0.5rem"><span class="dot"></span> 完整推理输出</div>
+              <pre id="narrative" class="narrative-output"></pre>
+            </div>
+            <div id="placeholder" class="empty-state">
+              <div class="empty-icon">📝</div>
+              <p>填写病历后点击「开始入组分析」</p>
+              <p style="font-size:0.8rem;color:var(--muted)">入组结果将在此处展示</p>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════ -->
+      <!-- Tab 2: 文档生成                                            -->
+      <!-- ════════════════════════════════════════════════════════ -->
+      <div class="tab-content" id="tab-docs">
+        <div class="docs-layout">
+          <!-- 左侧 -->
+          <section class="panel docs-sidebar">
+            <div class="panel-title"><span class="dot"></span> 文档类型</div>
+            <div class="doc-type-list">
+              <button class="btn btn-outline doc-type-btn" data-doc="srs">
+                <span class="doc-icon">📄</span> 需求规格说明书 (SRS)
+              </button>
+              <button class="btn btn-outline doc-type-btn" data-doc="design">
+                <span class="doc-icon">📐</span> 概要设计文档
+              </button>
+              <button class="btn btn-outline doc-type-btn" data-doc="test_report">
+                <span class="doc-icon">📊</span> 测试报告
+              </button>
+            </div>
+
+            <div class="section-title">文档选项</div>
+            <label class="form-label" for="doc-project">项目名称</label>
+            <input type="text" id="doc-project" class="form-input" value="医保 DRG 入组智能体" />
+            <label class="form-label" for="doc-note">提交说明</label>
+            <input type="text" id="doc-note" class="form-input" value="文档生成智能体自动提交" />
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary" id="btn-gen-doc">
+                <span class="spinner" aria-hidden="true"></span>
+                <span class="btn-label">生成文档</span>
+              </button>
+              <label class="checkbox-label" title="需配置 API Key">
+                <input type="checkbox" id="chk-doc-llm" /> AI 增强
+              </label>
+              <label class="checkbox-label" title="生成后自动提交到虚拟文档系统">
+                <input type="checkbox" id="chk-auto-submit" /> 自动提交
+              </label>
+            </div>
+
+            <div class="section-title">AI 自由生成</div>
+            <textarea id="ai-prompt" class="form-input" style="min-height:60px;resize:vertical;font-family:var(--font)" placeholder="描述你想要生成的文档内容…"></textarea>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-ai-gen" style="width:100%;margin-top:0.5rem">AI 生成内容</button>
+
+            <div class="section-title">模板管理</div>
+            <div class="template-list" id="template-list">
+              <p class="hint">加载中…</p>
+            </div>
+            <div class="toolbar" style="flex-direction:column;align-items:stretch;gap:0.35rem">
+              <button type="button" class="btn btn-outline btn-sm" id="btn-load-template">加载选中模板</button>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-save-template">保存当前为模板</button>
+            </div>
+          </section>
+
+          <!-- 右侧预览 -->
+          <section class="panel docs-preview">
+            <div class="panel-title"><span class="dot"></span> 文档预览与修订</div>
+            <div id="doc-error" class="alert alert-error" style="display: none" role="alert"></div>
+            <div class="toolbar doc-toolbar">
+              <span id="doc-info" class="hint" style="margin:0">请选择文档类型并点击生成</span>
+              <div style="display:flex;gap:0.4rem">
+                <button type="button" class="btn btn-outline btn-sm" id="btn-edit-toggle">编辑模式</button>
+                <button type="button" class="btn btn-outline btn-sm" id="btn-doc-save">保存修订</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-doc-submit">提交文档</button>
+              </div>
+            </div>
+            <div id="doc-submit-info" class="submit-status" style="display: none"></div>
+            <div id="doc-preview" class="doc-content">
+              <div class="empty-state">
+                <div class="empty-icon">📄</div>
+                <p>选择左侧文档类型后点击生成</p>
+              </div>
+            </div>
+            <textarea id="doc-editor" class="doc-editor" style="display: none" placeholder="在此编辑文档内容…"></textarea>
+          </section>
+
+          <!-- 提交历史 -->
+          <section class="panel docs-history">
+            <div class="panel-title"><span class="dot"></span> 虚拟文档提交记录</div>
+            <div class="toolbar history-toolbar">
+              <select id="vdoc-filter-type" class="form-input">
+                <option value="">全部类型</option>
+                <option value="srs">SRS</option>
+                <option value="design">概要设计</option>
+                <option value="test_report">测试报告</option>
+                <option value="ai_custom">AI 自定义</option>
+              </select>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-refresh-vdocs">刷新</button>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-retry-vdocs">重试失败</button>
+            </div>
+            <div id="vdoc-list" class="vdoc-list">
+              <p class="hint">暂无提交记录</p>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════ -->
+      <!-- Tab 3: 测试用例                                            -->
+      <!-- ════════════════════════════════════════════════════════ -->
+      <div class="tab-content" id="tab-tests">
+        <div class="tests-layout">
+          <!-- 左侧操作面板 -->
+          <section class="panel tests-sidebar">
+            <div class="panel-title"><span class="dot"></span> 测试操作</div>
+            <div class="toolbar" style="flex-direction:column;align-items:stretch;gap:0.45rem">
+              <button type="button" class="btn btn-primary" id="btn-gen-tests">
+                <span class="spinner" aria-hidden="true"></span>
+                <span class="btn-label">生成测试用例</span>
+              </button>
+              <label class="checkbox-label" title="AI 生成额外测试用例">
+                <input type="checkbox" id="chk-test-llm" /> AI 增强
+              </label>
+              <button type="button" class="btn btn-outline" id="btn-run-tests">
+                <span class="spinner" aria-hidden="true"></span>
+                <span class="btn-label">执行全部用例</span>
+              </button>
+              <button type="button" class="btn btn-outline" id="btn-export-tests">导出 JSON</button>
+            </div>
+
+            <div class="section-title">分类筛选</div>
+            <div class="filter-group">
+              <label class="filter-label">场景分类</label>
+              <select id="filter-cat" class="form-input">
+                <option value="">全部</option>
+                <option value="normal">正常场景</option>
+                <option value="boundary">边界场景</option>
+                <option value="exception">异常场景</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">优先级</label>
+              <select id="filter-prio" class="form-input">
+                <option value="">全部</option>
+                <option value="P0">P0 - 关键</option>
+                <option value="P1">P1 - 重要</option>
+                <option value="P2">P2 - 一般</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">功能模块</label>
+              <select id="filter-mod" class="form-input">
+                <option value="">全部</option>
+                <option value="engine">规则引擎</option>
+                <option value="parser">病历解析</option>
+                <option value="agent">智能体</option>
+              </select>
+            </div>
+
+            <div id="tests-summary" class="tests-summary" style="display: none"></div>
+          </section>
+
+          <!-- 右侧用例列表 -->
+          <section class="panel tests-main">
+            <div class="panel-title"><span class="dot"></span> 测试用例列表</div>
+            <div id="tests-error" class="alert alert-error" style="display: none" role="alert"></div>
+            <div id="tests-list" class="tests-list">
+              <div class="empty-state">
+                <div class="empty-icon">🧪</div>
+                <p>点击「生成测试用例」开始</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <footer>教学演示 &middot; 规则数据见 drg_agent/rules/sample_rules.json &middot; 仅供学习使用</footer>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <script>
+      (function () {
+        // ── DOM 引用 ──────────────────────────────────────────
+        var tabNav = document.getElementById("tab-nav");
+        var tabs = tabNav.querySelectorAll(".tab");
+        var contents = document.querySelectorAll(".tab-content");
+
+        var emr = document.getElementById("emr");
+        var btnRun = document.getElementById("btn-run");
+        var btnEx = document.getElementById("btn-example");
+        var chkLlm = document.getElementById("chk-llm");
+        var err = document.getElementById("error");
+        var summary = document.getElementById("summary");
+        var placeholder = document.getElementById("placeholder");
+        var narrative = document.getElementById("narrative");
+
+        var btnGenDoc = document.getElementById("btn-gen-doc");
+        var docProject = document.getElementById("doc-project");
+        var docNote = document.getElementById("doc-note");
+        var docErrorEl = document.getElementById("doc-error");
+        var docPreview = document.getElementById("doc-preview");
+        var docEditor = document.getElementById("doc-editor");
+        var docInfo = document.getElementById("doc-info");
+        var docSubmitInfo = document.getElementById("doc-submit-info");
+        var btnEditToggle = document.getElementById("btn-edit-toggle");
+        var btnDocSave = document.getElementById("btn-doc-save");
+        var btnDocSubmit = document.getElementById("btn-doc-submit");
+        var btnLoadTpl = document.getElementById("btn-load-template");
+        var btnSaveTpl = document.getElementById("btn-save-template");
+        var templateList = document.getElementById("template-list");
+        var chkDocLlm = document.getElementById("chk-doc-llm");
+        var chkAutoSubmit = document.getElementById("chk-auto-submit");
+        var aiPromptEl = document.getElementById("ai-prompt");
+        var btnAiGen = document.getElementById("btn-ai-gen");
+        var vdocList = document.getElementById("vdoc-list");
+        var vdocFilterType = document.getElementById("vdoc-filter-type");
+        var btnRefreshVdocs = document.getElementById("btn-refresh-vdocs");
+        var btnRetryVdocs = document.getElementById("btn-retry-vdocs");
+        var currentDocType = "";
+        var currentDocContent = "";
+        var editMode = false;
+
+        var btnGenTests = document.getElementById("btn-gen-tests");
+        var btnRunTests = document.getElementById("btn-run-tests");
+        var btnExportTests = document.getElementById("btn-export-tests");
+        var testsErrorEl = document.getElementById("tests-error");
+        var testsList = document.getElementById("tests-list");
+        var testsSummaryEl = document.getElementById("tests-summary");
+        var filterCat = document.getElementById("filter-cat");
+        var filterPrio = document.getElementById("filter-prio");
+        var filterMod = document.getElementById("filter-mod");
+
+        var allTestCases = {};
+        var testResults = [];
+
+        // ── 通用工具 ──────────────────────────────────────────
+        function setLoading(btn, on) {
+          btn.disabled = on;
+          btn.classList.toggle("loading", on);
+        }
+
+        function ajax(url, opts) {
+          return fetch(url, opts).then(function (r) {
+            return r.json().then(function (data) { return { ok: r.ok, status: r.status, data: data }; });
+          });
+        }
+
+        // ── Tab 切换 ──────────────────────────────────────────
+        tabs.forEach(function (t) {
+          t.addEventListener("click", function () {
+            tabs.forEach(function (x) { x.classList.remove("active"); });
+            t.classList.add("active");
+            contents.forEach(function (c) { c.classList.remove("active"); });
+            var target = document.getElementById(t.dataset.tab);
+            if (target) target.classList.add("active");
+          });
+        });
+
+        // ══════════════════════════════════════════════════════
+        // Tab 1: DRG 入组
+        // ══════════════════════════════════════════════════════
+        function hideError() { err.style.display = "none"; err.textContent = ""; }
+        function showError(msg) { err.textContent = msg; err.style.display = "flex"; }
+
+        function fillSummary(g) {
+          document.getElementById("v-mdc-c").textContent = g.mdc_code || "—";
+          document.getElementById("v-mdc-n").textContent = g.mdc_name || "";
+          document.getElementById("v-adrg-c").textContent = g.adrg_code || "—";
+          document.getElementById("v-adrg-n").textContent = g.adrg_name || "";
+          document.getElementById("v-drg-c").textContent = g.drg_code || "—";
+          document.getElementById("v-drg-n").textContent = g.drg_name || "";
+        }
+
+        btnEx.addEventListener("click", function () {
+          hideError();
+          fetch("/api/example-emr")
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error("无法加载示例")); })
+            .then(function (data) { emr.value = data.emr_text; })
+            .catch(function (e) { showError(e.message); });
+        });
+
+        btnRun.addEventListener("click", function () {
+          hideError();
+          var text = emr.value.trim();
+          if (!text) { showError("请先输入病历文本。"); return; }
+          setLoading(btnRun, true);
+          placeholder.style.display = "none";
+          fetch("/api/group", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ emr_text: text, use_llm: chkLlm.checked }),
+          })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+            .then(function (res) {
+              setLoading(btnRun, false);
+              var data = res.data;
+              if (!data.ok) { summary.style.display = "none"; showError(data.error || "入组失败"); return; }
+              summary.style.display = "block";
+              fillSummary(data.grouping);
+              narrative.textContent = data.narrative || "";
+            })
+            .catch(function () { setLoading(btnRun, false); showError("网络或服务异常。"); });
+        });
+
+        // ══════════════════════════════════════════════════════
+        // Tab 2: 文档生成
+        // ══════════════════════════════════════════════════════
+        document.querySelectorAll(".doc-type-btn").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            document.querySelectorAll(".doc-type-btn").forEach(function (b) { b.classList.remove("active"); });
+            btn.classList.add("active");
+            currentDocType = btn.dataset.doc;
+            docErrorEl.style.display = "none";
+            docInfo.textContent = "已选择: " + btn.textContent.trim() + " — 点击「生成文档」";
+          });
+        });
+
+        btnGenDoc.addEventListener("click", function () {
+          if (!currentDocType) { showDocError("请先选择文档类型。"); return; }
+          var apiMap = { srs: "/api/docs/srs", design: "/api/docs/design", test_report: "/api/docs/test-report" };
+          var url = apiMap[currentDocType];
+          if (!url) return;
+          setLoading(btnGenDoc, true);
+          docErrorEl.style.display = "none";
+          ajax(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              project_name: docProject.value || "医保 DRG 入组智能体",
+              use_llm: chkDocLlm.checked,
+              auto_submit: chkAutoSubmit.checked,
+              change_note: docNote.value || "文档生成智能体自动提交",
+            }),
+          }).then(function (res) {
+            setLoading(btnGenDoc, false);
+            if (!res.data.ok) { showDocError(res.data.error); return; }
+            currentDocContent = res.data.content;
+            var aiTag = res.data.ai_enhanced ? " [AI 增强]" : "";
+            docInfo.textContent = "已生成" + aiTag + " — " + res.data.preview.lines + " 行, " + res.data.preview.chars + " 字符";
+            renderDocPreview(currentDocContent);
+            if (res.data.submission) {
+              showSubmitInfo(res.data.submission);
+              loadVirtualDocs();
+            }
+          }).catch(function () { setLoading(btnGenDoc, false); showDocError("网络异常。"); });
+        });
+
+        function showDocError(msg) { docErrorEl.textContent = msg; docErrorEl.style.display = "flex"; }
+        function showSubmitInfo(doc) {
+          var ok = doc && doc.status === "success";
+          docSubmitInfo.className = "submit-status " + (ok ? "submit-ok" : "submit-bad");
+          docSubmitInfo.style.display = "block";
+          docSubmitInfo.textContent = ok
+            ? "已提交到虚拟文档系统：版本 " + doc.current_version + "，ID " + doc.doc_id
+            : "提交未成功：" + ((doc && doc.last_error) || "未知错误");
+        }
+
+        function renderDocPreview(content) {
+          if (editMode) { docEditor.value = content; return; }
+          var html = content
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+            .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+            .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+            .replace(/^- (.+)$/gm, "<li>$1</li>")
+            .replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>")
+            .replace(/\|(.+)\|/g, function (line) {
+              if (line.indexOf("---") >= 0) return "";
+              return "<p class='table-row'>" + line + "</p>";
+            })
+            .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+            .replace(/\n\n/g, "</p><p>")
+            .replace(/\n/g, "<br>");
+          docPreview.innerHTML = "<p>" + html + "</p>";
+          docPreview.style.display = "block";
+          docEditor.style.display = "none";
+        }
+
+        btnEditToggle.addEventListener("click", function () {
+          editMode = !editMode;
+          btnEditToggle.textContent = editMode ? "预览模式" : "编辑模式";
+          if (editMode) {
+            docEditor.value = currentDocContent || docPreview.textContent || "";
+            docPreview.style.display = "none";
+            docEditor.style.display = "block";
+          } else {
+            currentDocContent = docEditor.value;
+            docPreview.style.display = "block";
+            docEditor.style.display = "none";
+            renderDocPreview(currentDocContent);
+          }
+        });
+
+        btnDocSave.addEventListener("click", function () {
+          if (editMode) { currentDocContent = docEditor.value; }
+          if (!currentDocContent) { showDocError("没有文档内容可保存。"); return; }
+          ajax("/api/docs/preview", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: currentDocContent, edits: [] }),
+          }).then(function (res) {
+            if (res.data.ok) {
+              docInfo.textContent = "已保存修订 — " + res.data.preview.lines + " 行";
+              currentDocContent = res.data.content;
+              if (!editMode) renderDocPreview(currentDocContent);
+              alert("文档修订已保存。");
+            } else { showDocError(res.data.error); }
+          }).catch(function () { showDocError("保存失败。"); });
+        });
+
+        btnDocSubmit.addEventListener("click", function () {
+          if (editMode) { currentDocContent = docEditor.value; }
+          if (!currentDocContent) { showDocError("没有文档内容可提交。"); return; }
+          setLoading(btnDocSubmit, true);
+          ajax("/api/virtual-docs/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              doc_type: currentDocType || "other",
+              title: (docProject.value || "医保 DRG 入组智能体") + "-" + (currentDocType || "文档"),
+              content: currentDocContent,
+              change_note: docNote.value || "手动提交当前修订版",
+              source_agent: "web",
+            }),
+          }).then(function (res) {
+            setLoading(btnDocSubmit, false);
+            if (!res.data.document) { showDocError(res.data.error || "提交失败"); return; }
+            showSubmitInfo(res.data.document);
+            loadVirtualDocs();
+          }).catch(function () { setLoading(btnDocSubmit, false); showDocError("提交失败。"); });
+        });
+
+        function loadTemplateList() {
+          fetch("/api/docs/templates")
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (!data.templates || !data.templates.length) {
+                templateList.innerHTML = '<p class="hint">暂无模板</p>';
+                return;
+              }
+              var html = "";
+              data.templates.forEach(function (t) {
+                html += '<label class="tpl-item"><input type="radio" name="tpl" value="' + t.name + '" data-type="' + t.doc_type + '"> ' + t.name + ' <span class="badge badge-primary">' + t.doc_type + '</span></label>';
+              });
+              templateList.innerHTML = html;
+            });
+        }
+        loadTemplateList();
+
+        function loadVirtualDocs() {
+          var url = "/api/virtual-docs";
+          if (vdocFilterType.value) { url += "?doc_type=" + encodeURIComponent(vdocFilterType.value); }
+          fetch(url)
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              var docs = data.documents || [];
+              if (!docs.length) { vdocList.innerHTML = '<p class="hint">暂无提交记录</p>'; return; }
+              var html = "";
+              docs.forEach(function (d) {
+                var statusLabel = d.status === "success" ? "成功" : (d.status === "pending_retry" ? "待重试" : "失败");
+                var versions = (d.versions || []).map(function (v) { return v.version; }).join(", ");
+                html += '<div class="vdoc-item">' +
+                  '<div class="vdoc-head">' +
+                  '<strong>' + escapeHtml(d.title) + '</strong>' +
+                  '<span class="badge badge-primary">' + d.doc_type + '</span>' +
+                  '<span class="badge badge-status-' + d.status + '">' + statusLabel + '</span>' +
+                  '</div>' +
+                  '<div class="vdoc-meta">ID: <code>' + d.doc_id + '</code></div>' +
+                  '<div class="vdoc-meta">当前版本: ' + d.current_version + ' · 历史版本: ' + versions + '</div>' +
+                  '<div class="vdoc-meta">更新时间: ' + d.updated_at + '</div>' +
+                  (d.last_error ? '<div class="vdoc-error">' + escapeHtml(d.last_error) + '</div>' : '') +
+                  '</div>';
+              });
+              vdocList.innerHTML = html;
+            }).catch(function () { vdocList.innerHTML = '<p class="hint">提交记录加载失败</p>'; });
+        }
+        function escapeHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+        btnRefreshVdocs.addEventListener("click", loadVirtualDocs);
+        vdocFilterType.addEventListener("change", loadVirtualDocs);
+        btnRetryVdocs.addEventListener("click", function () {
+          ajax("/api/virtual-docs/retry", { method: "POST" })
+            .then(function () { loadVirtualDocs(); })
+            .catch(function () { showDocError("重试失败。"); });
+        });
+        loadVirtualDocs();
+
+        btnLoadTpl.addEventListener("click", function () {
+          var sel = templateList.querySelector('input[name="tpl"]:checked');
+          if (!sel) { showDocError("请先选择一个模板。"); return; }
+          fetch("/api/docs/templates/" + sel.value)
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (!data.template) { showDocError("模板加载失败。"); return; }
+              currentDocType = data.template.doc_type;
+              currentDocContent = data.template.content;
+              docInfo.textContent = "已加载模板: " + data.template.name;
+              document.querySelectorAll(".doc-type-btn").forEach(function (b) { b.classList.remove("active"); });
+              var btn = document.querySelector('.doc-type-btn[data-doc="' + currentDocType + '"]');
+              if (btn) btn.classList.add("active");
+              renderDocPreview(currentDocContent);
+            }).catch(function () { showDocError("加载模板失败。"); });
+        });
+
+        btnAiGen.addEventListener("click", function () {
+          var prompt = aiPromptEl.value.trim();
+          if (!prompt) { showDocError("请输入 AI 生成要求。"); return; }
+          setLoading(btnAiGen, true);
+          docErrorEl.style.display = "none";
+          ajax("/api/docs/ai-generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: prompt, context: "医保 DRG 入组智能体系统" }),
+          }).then(function (res) {
+            setLoading(btnAiGen, false);
+            if (!res.data.ok) { showDocError(res.data.error); return; }
+            currentDocContent = res.data.content;
+            currentDocType = "ai_custom";
+            docInfo.textContent = "AI 生成 — " + res.data.preview.lines + " 行";
+            renderDocPreview(currentDocContent);
+          }).catch(function () { setLoading(btnAiGen, false); showDocError("AI 调用失败。"); });
+        });
+
+        btnSaveTpl.addEventListener("click", function () {
+          if (!currentDocContent) { showDocError("请先生成或加载文档内容。"); return; }
+          var name = prompt("模板名称（字母/数字/下划线）：", currentDocType + "_custom");
+          if (!name) return;
+          ajax("/api/docs/templates", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: name, doc_type: currentDocType || "srs",
+              content: currentDocContent, description: "用户自定义模板", version: "1.0",
+            }),
+          }).then(function (res) {
+            if (res.data.ok) { alert("模板已保存！"); loadTemplateList(); }
+            else { showDocError(res.data.error); }
+          }).catch(function () { showDocError("保存模板失败。"); });
+        });
+
+        // ══════════════════════════════════════════════════════
+        // Tab 3: 测试用例
+        // ══════════════════════════════════════════════════════
+        function showTestsError(msg) { testsErrorEl.textContent = msg; testsErrorEl.style.display = "flex"; }
+        function hideTestsError() { testsErrorEl.style.display = "none"; testsErrorEl.textContent = ""; }
+
+        btnGenTests.addEventListener("click", function () {
+          hideTestsError();
+          setLoading(btnGenTests, true);
+          fetch("/api/tests/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ use_llm: document.getElementById("chk-test-llm").checked }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              setLoading(btnGenTests, false);
+              if (!data.ok) { showTestsError(data.error); return; }
+              allTestCases = data.cases;
+              testResults = [];
+              testsSummaryEl.style.display = "block";
+              var s = data.summary;
+              testsSummaryEl.innerHTML =
+                (data.coverage_analysis ? '<div class="coverage-box"><strong>AI 覆盖分析</strong><pre style="white-space:pre-wrap;font-size:0.78rem;margin:0.3rem 0 0 0;max-height:200px;overflow:auto">' + data.coverage_analysis.replace(/</g,'&lt;') + '</pre></div>' : '') +
+                '<div class="summary-cards">' +
+                '<div class="card"><div class="card-label">总计</div><div class="card-code">' + s.total + '</div></div>' +
+                '<div class="card card-success"><div class="card-label">正常场景</div><div class="card-code">' + (s.by_category ? s.by_category.normal || 0 : 0) + '</div></div>' +
+                '<div class="card card-warning"><div class="card-label">边界场景</div><div class="card-code">' + (s.by_category ? s.by_category.boundary || 0 : 0) + '</div></div>' +
+                '<div class="card card-danger"><div class="card-label">异常场景</div><div class="card-code">' + (s.by_category ? s.by_category.exception || 0 : 0) + '</div></div>' +
+                '</div>';
+              renderTestList();
+            })
+            .catch(function () { setLoading(btnGenTests, false); showTestsError("网络异常。"); });
+        });
+
+        btnRunTests.addEventListener("click", function () {
+          if (!Object.keys(allTestCases).length) { showTestsError("请先生成测试用例。"); return; }
+          hideTestsError();
+          setLoading(btnRunTests, true);
+          fetch("/api/tests/execute", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ case_ids: null }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              setLoading(btnRunTests, false);
+              if (!data.ok) { showTestsError(data.error); return; }
+              testResults = data.results || [];
+              var s = data.summary;
+              testsSummaryEl.innerHTML =
+                '<div class="summary-cards">' +
+                '<div class="card"><div class="card-label">总计</div><div class="card-code">' + s.total + '</div></div>' +
+                '<div class="card card-success"><div class="card-label">通过</div><div class="card-code">' + s.passed + '</div></div>' +
+                '<div class="card card-danger"><div class="card-label">失败</div><div class="card-code">' + s.failed + '</div></div>' +
+                '<div class="card card-accent"><div class="card-label">通过率</div><div class="card-code">' + s.pass_rate + '</div></div>' +
+                '</div>';
+              renderTestList();
+            })
+            .catch(function () { setLoading(btnRunTests, false); showTestsError("网络异常。"); });
+        });
+
+        btnExportTests.addEventListener("click", function () {
+          window.open("/api/tests/export?fmt=json", "_blank");
+        });
+
+        filterCat.addEventListener("change", renderTestList);
+        filterPrio.addEventListener("change", renderTestList);
+        filterMod.addEventListener("change", renderTestList);
+
+        function renderTestList() {
+          var catFilter = filterCat.value;
+          var prioFilter = filterPrio.value;
+          var modFilter = filterMod.value;
+
+          var flat = [];
+          for (var cat in allTestCases) {
+            var arr = allTestCases[cat] || [];
+            arr.forEach(function (c) {
+              if (catFilter && c.category !== catFilter) return;
+              if (prioFilter && c.priority !== prioFilter) return;
+              if (modFilter && c.module !== modFilter) return;
+              flat.push(c);
+            });
+          }
+
+          if (!flat.length) {
+            testsList.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>无匹配的测试用例</p></div>';
+            return;
+          }
+
+          var resultMap = {};
+          (testResults || []).forEach(function (r) { resultMap[r.case_id] = r; });
+
+          var html = "";
+          flat.forEach(function (c) {
+            var r = resultMap[c.id];
+            var statusIcon = r ? (r.passed ? "✅" : "❌") : "";
+            var statusClass = r ? (r.passed ? "test-pass" : "test-fail") : "";
+            var catLabel = { normal: "正常", boundary: "边界", exception: "异常" }[c.category] || c.category;
+            html += '<div class="test-case ' + statusClass + '" data-id="' + c.id + '">' +
+              '<div class="test-case-header">' +
+              '<span class="test-id">' + c.id + '</span>' +
+              '<span class="test-status">' + statusIcon + '</span>' +
+              '<span class="test-title">' + escapeHtml(c.title) + '</span>' +
+              '<span class="badge badge-' + c.category + '">' + catLabel + '</span>' +
+              '<span class="badge badge-prio">' + c.priority + '</span>' +
+              '</div>' +
+              '<div class="test-case-body" style="display:none">' +
+              '<p><strong>描述:</strong> ' + escapeHtml(c.description) + '</p>' +
+              '<p><strong>输入:</strong> <code>' + JSON.stringify(c.input) + '</code></p>' +
+              '<p><strong>预期:</strong> <code>' + JSON.stringify(c.expected) + '</code></p>' +
+              (r ? '<p><strong>实际:</strong> <code>' + JSON.stringify(r.actual) + '</code></p>' +
+               '<p><strong>耗时:</strong> ' + r.duration_ms + ' ms</p>' +
+               (r.error ? '<p class="test-error-msg"><strong>错误:</strong> ' + escapeHtml(r.error) + '</p>' : '') : '') +
+              '</div>' +
+              '</div>';
+          });
+          testsList.innerHTML = html;
+
+          testsList.querySelectorAll(".test-case-header").forEach(function (hdr) {
+            hdr.addEventListener("click", function () {
+              var body = this.nextElementSibling;
+              body.style.display = body.style.display === "none" ? "block" : "none";
+            });
+          });
+        }
+
+      })();
+    </script>
+  </body>
+</html>
